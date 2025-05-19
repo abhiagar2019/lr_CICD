@@ -5,7 +5,7 @@ import train # This imports our train.py script so we can call its functions
 import random
 
 MODEL_FILENAME = "model.joblib"
-R2_THRESHOLD = 0.75  # Our target "goodness" score (75%)
+R2_THRESHOLD = 0.97  # Our target "goodness" score (75%)
 MAX_RETRAIN_ATTEMPTS = 2 # Try retraining a maximum of 2 times
 
 def load_model_func(filename=MODEL_FILENAME):
@@ -26,7 +26,7 @@ def generate_test_data_func(n_samples=50):
     # Simulate a "true" underlying pattern for test data
     # It's good if this is similar to, but not exactly, the training generation
     true_slope_test = 2.0 * random.uniform(0.85, 1.15) # Test on slightly different "true" params
-    true_intercept_test = 5.0 * random.uniform(0.55, 1.15)
+    true_intercept_test = 5.0 * random.uniform(0.85, 1.15)
     noise_level_test = 1.0 * random.uniform(0.8, 1.2)
 
     y_test = true_slope_test * X_test.squeeze() + true_intercept_test + np.random.randn(n_samples) * noise_level_test
