@@ -5,7 +5,7 @@ import train # This imports our train.py script so we can call its functions
 import random
 
 MODEL_FILENAME = "model.joblib"
-R2_THRESHOLD = 0.97  # Our target "goodness" score (75%)
+R2_THRESHOLD = 0.75  # Our target "goodness" score (75%)
 MAX_RETRAIN_ATTEMPTS = 2 # Try retraining a maximum of 2 times
 
 def load_model_func(filename=MODEL_FILENAME):
