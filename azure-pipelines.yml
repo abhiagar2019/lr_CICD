@@ -1,0 +1,56 @@
+# azure-pipelines.yml
+
+trigger:
+- main  # This pipeline will trigger on commits to the 'main' branch
+        # If your main branch is called 'master', change this to 'master'
+
+pool:
+  vmImage: 'ubuntu-latest' # We'll use a Linux virtual machine provided by Microsoft
+
+variables:
+  PYTHON_VERSION: '3.10' # Define your Python version here (e.g., 3.8, 3.9, 3.10, 3.11)
+
+steps:
+# Step 1: Set up the specified Python version
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '$(PYTHON_VERSION)' # Uses the variable defined above
+    addToPath: true
+  displayName: 'Set up Python $(PYTHON_VERSION)'
+
+# Step 2: Install project dependencies
+- script: |
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+  displayName: 'Install dependencies from requirements.txt'
+
+# Step 3: Run the initial model training script
+- script: |
+    python train.py
+  displayName: 'Run Initial Model Training (train.py)'
+  # This script creates the initial model.joblib
+
+# Step 4: Run the model testing script (includes retraining logic)
+- script: |
+    python test_model.py
+  displayName: 'Test Model & Retrain if Needed (test_model.py)'
+  # test_model.py will exit with 0 if successful, or 1 if it fails.
+  # Azure Pipelines uses this exit code to mark the step as success/failure.
+
+# Step 5: Copy the trained model to a special staging directory for artifacts
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(System.DefaultWorkingDirectory)' # The root of your checked-out code
+    Contents: 'model.joblib' # The model file we want to save
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+  displayName: 'Copy model.joblib to Artifact Staging Directory'
+  condition: always() # Run this step even if previous steps failed, so we can inspect the model
+
+# Step 6: Publish the staged model as a pipeline artifact
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'trained_regression_model' # This will be the name of your downloadable artifact
+    publishLocation: 'Container'
+  displayName: 'Publish Trained Model as Pipeline Artifact'
+  condition: always() # Publish even if the pipeline failed, for debugging purposes
